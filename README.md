@@ -1,152 +1,155 @@
-# MoonGrid Backend (Fake-Data Stage)
+# 🌔 MoonGrid
 
-This is a **real, running FastAPI server** that implements the `/predict`
-contract from `MoonGrid_API_Spec.pdf` exactly — but with hardcoded/generated
-fake data instead of real ML models, so your frontend teammates can build
-against it *today*.
+> **AI-Powered Lunar Hazard Mapping & Autonomous Safe Landing Zone Detection System**
 
-## What's actually implemented right now
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2015-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![CesiumJS](https://img.shields.io/badge/3D%20Globe-CesiumJS-6A9BE8?style=for-the-badge&logo=cesium&logoColor=white)](https://cesium.com/)
+[![PyTorch](https://img.shields.io/badge/ML%20Engine-PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgis.net/)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-- Real FastAPI app with CORS enabled (so Next.js on `localhost:3000` can call it)
-- `POST /predict` — accepts an uploaded image, returns JSON matching the
-  spec 100% (same field names, types, and nesting)
-- It doesn't just echo static JSON — it actually generates a fake
-  "super-resolution" image (2x upscale + sharpen) and a fake risk-map image
-  (green/yellow/red blotches) from whatever you upload, so the frontend's
-  before/after slider and risk overlay have something real to render
-- Proper error handling: uploading a non-image file returns
-  `400 {"error": "Invalid image format"}` like the spec says
-- Static file serving at `/static/results/...` for the generated images
+---
 
-- **Real PostgreSQL + PostGIS persistence**, tested end-to-end: every
-  `/predict` call is saved as a row (filename, summary stats, full JSON
-  result, timestamp), plus `GET /jobs` (list history) and `GET /jobs/{id}`
-  (fetch one past result) endpoints
-- A `location` PostGIS geometry column exists on each job row but is left
-  `NULL` for now — see "Next steps" for why
+## 📌 Overview
 
-## What's NOT implemented yet (on purpose)
+**MoonGrid** is an advanced geospatial and computer vision platform designed to assist autonomous lunar landers (such as ISRO's Chandrayaan and NASA's Artemis missions) in identifying hazard-free touchdown sites on the lunar surface.
 
-- Pixel-to-real-lunar-coordinate georeferencing (needed before `location`
-  can be populated with anything meaningful)
-- No real ML models — obviously, that's phase 2.
+By processing high-resolution Terrain Mapping Camera (TMC) and Orbiter High-Resolution Camera (OHRC) imagery, MoonGrid applies super-resolution enhancement, detects micro-craters, boulders, steep slopes, and shadow zones, and outputs a weighted multi-hazard risk heatmap along with ranked safe landing zones.
 
-## 1. Setup (one-time)
+---
 
-**Start the database** (needs Docker):
-```bash
-cd moongrid-backend
-docker compose up -d
+## ✨ Key Features
+
+- 🛰️ **Super-Resolution Image Enhancement:** Upscales optical lunar surface scans with edge-preserving sharpness to uncover hidden micro-topographical hazards.
+- 🌋 **Automated Hazard Detection:**
+  - **Craters & Depressions:** Morphological contour analysis and Faster R-CNN detection.
+  - **Boulders & Rocks:** High-contrast blob segmentation and topological feature detection.
+  - **Steep Slopes:** Sobel gradient intensity filters calculating surface incline risks.
+  - **Deep Shadows:** Radiometric thresholding identifying hazardous, low-visibility regions.
+- 🎛️ **Multi-Hazard Risk Fusion:** Weighted risk heatmap algorithm (*40% Craters + 30% Shadows + 30% Slopes*) classifying terrain into **Safe (Green)**, **Moderate (Amber)**, and **Hazardous (Red)**.
+- 🎯 **Topological Safe Landing Zone Extraction:** Automatically identifies, bounds, and ranks candidate landing zones by safety score, clearance radius, and descent approach vector.
+- 🌐 **Interactive 3D Lunar Digital Twin:** Built with **CesiumJS** to visualize landing sites on an interactive 3D Moon globe.
+- 📊 **Scan History & Persistence:** Integrated SQLite / PostgreSQL + PostGIS database keeping complete audit logs of all processed scans.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    A[Lunar TMC / OHRC Image Upload] --> B[FastAPI Backend Engine]
+    B --> C[Super-Resolution Processing]
+    C --> D1[Crater & Boulder Detection]
+    C --> D2[Slope Gradient Analysis]
+    C --> D3[Deep Shadow Extraction]
+    D1 & D2 & D3 --> E[Multi-Hazard Fusion Matrix]
+    E --> F[Colorized Risk Heatmap]
+    E --> G[Safe Landing Zone Extraction & Ranking]
+    F & G --> H[Next.js + Cesium 3D Dashboard]
+    H --> I[Interactive Trajectory & Hazard Overlays]
 ```
-This starts Postgres 16 + PostGIS on `localhost:5432` with the database
-`moongrid` already created. No `.env` needed — the app's defaults already
-match this. (If you don't have Docker, install PostgreSQL 16 + the
-`postgis` extension natively and create a database/user matching
-`.env.example`.)
 
-**Install Python deps:**
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS, Lucide Icons |
+| **3D Visualization** | CesiumJS, Resium, WebGL |
+| **Backend API** | FastAPI, Uvicorn, Pydantic, SQLAlchemy |
+| **Computer Vision / ML** | PyTorch, OpenCV, NumPy, SciPy, Pillow, Scikit-Image |
+| **Geospatial & Storage** | PostgreSQL 16, PostGIS, SQLite |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js** (v18.0 or higher)
+- **Python** (v3.10 or higher)
+- **Git**
+
+---
+
+### 1. Clone the Repository
 ```bash
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+git clone https://github.com/rawchitt/MoonGrid.git
+cd MoonGrid
+```
+
+---
+
+### 2. Backend Setup (FastAPI)
+
+```bash
+# Navigate to backend
+cd backend
+
+# Create and activate virtual environment
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+# source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
-## 2. Run the server
-
-```bash
+# Run the backend server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-On first run it automatically creates the `prediction_jobs` table — no
-manual migration step needed for this stage of the project.
+API will be live at `http://localhost:8000`  
+Interactive Swagger API docs: `http://localhost:8000/docs`
 
-Server will be live at `http://localhost:8000`.
-Interactive docs (auto-generated, great for testing without Postman):
-`http://localhost:8000/docs`
+---
 
-## 3. Test it
+### 3. Frontend Setup (Next.js)
 
-**Via curl:**
 ```bash
-curl -X POST http://localhost:8000/predict \
-  -F "image=@/path/to/some_moon_image.png"
+# Open a new terminal and navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the interactive dashboard.
 
-**Via the /docs page:** open `http://localhost:8000/docs` in a browser,
-expand `POST /predict`, click "Try it out", upload any `.png`/`.jpg`/`.tif`,
-click Execute. You'll get the full JSON response plus links to the
-generated images under `/static/results/`.
+---
 
-**Give this URL to your frontend teammate right now:**
-`http://localhost:8000/predict` — they can start building all 10 frontend
-components (upload, before/after slider, hazard overlays, risk map, safe
-zone panel, 3D view, etc.) against this immediately, per section 5 of the
-spec.
+## 📡 API Endpoints
 
-## 4. New endpoints (history)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/predict` | Uploads lunar optical image & returns hazard analysis JSON + visual overlays |
+| `GET` | `/jobs` | Returns list of past prediction scans and summary metrics |
+| `GET` | `/jobs/{id}` | Fetches full analysis data for a specific scan ID |
+| `GET` | `/docs` | Interactive Swagger API documentation |
 
-- `GET /jobs` — list all past predictions, most recent first (summary
-  fields only — filename, timestamp, recommended zone, crater/boulder
-  counts, percent safe/moderate/hazardous)
-- `GET /jobs/{id}` — fetch the full original `/predict` response for one
-  past job by its UUID
+---
 
-Useful for a "past scans" screen in the frontend, or just for demoing
-that the backend has real state, not just a stateless echo.
+## 🔮 Roadmap
 
-## 5. Project structure
+- [x] High-performance CV and morphological hazard detection pipeline
+- [x] Multi-hazard risk map overlay and colorized heatmap generation
+- [x] Next.js interactive UI with before/after comparison slider
+- [x] CesiumJS 3D Lunar terrain rendering
+- [ ] End-to-end SwinIR / ESRGAN deep-learning weights integration
+- [ ] Sub-pixel Selenographic coordinate georeferencing (TMC metadata mapping)
+- [ ] Real-time descent trajectory waypoint simulation
 
-```
-moongrid-backend/
-├── app/
-│   ├── main.py          # FastAPI app + /predict, /jobs routes
-│   ├── fake_data.py      # generates the hardcoded response + demo images
-│   ├── schemas.py         # Pydantic models = the JSON contract, exactly
-│   ├── db.py               # SQLAlchemy engine/session setup
-│   ├── models.py            # PredictionJob ORM model (Postgres + PostGIS)
-│   └── static/
-│       ├── uploads/       # raw uploaded images land here
-│       └── results/       # generated SR/original/riskmap images served here
-├── docker-compose.yml     # one-command Postgres+PostGIS for local dev
-├── .env.example
-├── requirements.txt
-└── README.md
-```
+---
 
-## 6. Suggested order of work from here (step by step)
+## 📄 License
 
-1. **Today:** `docker compose up -d`, run the server, confirm `/predict`
-   still works and now shows up in `GET /jobs`. Then actually share the
-   `/predict` URL with your frontend teammate — that's the one step from
-   last time still not done.
-2. **When someone figures out georeferencing** (mapping a pixel in the
-   TMC image to a real selenographic lat/lon — usually from the image's
-   metadata or a known footprint), populate the `location` column on each
-   job with the recommended zone's real coordinates. That unlocks PostGIS
-   queries like "zones within X km of here" for free — tell me when
-   you're ready for this and I'll wire it in.
-3. **When someone starts the SR model:** replace only the body of
-   `build_fake_predict_response()` in `fake_data.py` — swap the
-   `_make_super_res_image` fake upscale for a real SwinIR/ESRGAN inference
-   call. Nothing in `main.py` or the route needs to change.
-4. **When someone starts hazard detection:** same idea — replace the
-   hardcoded `hazards` dict values with real YOLO/U-Net outputs, keeping
-   the exact same keys (`craters`, `boulders`, `slope_zones`, `shadow_zones`).
-5. **Deploy for the demo:** since this has zero external dependencies
-   beyond `pip install -r requirements.txt`, it'll run anywhere — a
-   teammate's laptop, a free Render/Railway instance, whatever's easiest
-   day-of.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 6. Common gotchas
+---
 
-- If `python-multipart` isn't installed, file uploads will silently fail —
-  it's in `requirements.txt`, just make sure you actually ran `pip install`.
-- If your frontend gets CORS errors, double check it's calling
-  `http://localhost:8000` (not `127.0.0.1` — browsers treat these as
-  different origins sometimes) or just leave CORS wide open like this
-  starter does.
-- Coordinates in the response are pixel coordinates relative to the
-  **returned SR image's actual dimensions** (per spec section 3) — the
-  demo correctly scales hazard/zone coordinates to whatever size image
-  you upload, so test with a couple of different image sizes to confirm
-  your frontend overlay math is reading actual image dimensions and not
-  assuming a fixed size.
+<p align="center">
+  Developed with ❤️ for space exploration and autonomous planetary exploration.
+</p>
