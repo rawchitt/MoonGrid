@@ -80,7 +80,7 @@ export default function Home() {
           <div className="spline-lighting-balancer"></div>
           {!splineError ? (
             <Spline
-              scene="https://prod.spline.design/H0Ko7h5o9yS34lTv/scene.splinecode"
+              scene="/moon.splinecode"
               onError={() => setSplineError(true)}
               onLoad={(app: Application) => {
                 splineAppRef.current = app;
