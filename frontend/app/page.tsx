@@ -27,6 +27,7 @@ type ViewMode = 'hero' | 'cesium' | 'workflow';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [splineError, setSplineError] = useState(false);
   const [activeView, setActiveView] = useState<ViewMode>('hero');
   const mousePosRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ export default function Home() {
 
   // Loading sequence
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2000);
+    const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -73,16 +74,31 @@ export default function Home() {
         </div>
       )}
 
-      {/* --- Spline 3D Background (Magnetic Moon Rotation) --- */}
+      {/* --- Spline 3D Background with Graceful Lunar Fallback --- */}
       {activeView === 'hero' && (
-        <div className="spline-container transition-opacity duration-1000">
+        <div className="spline-container transition-opacity duration-1000 pointer-events-none">
           <div className="spline-lighting-balancer"></div>
-          <Spline
-            scene="https://prod.spline.design/H0Ko7h5o9yS34lTv/scene.splinecode"
-            onLoad={(app: Application) => {
-              splineAppRef.current = app;
-            }}
-          />
+          {!splineError ? (
+            <Spline
+              scene="https://prod.spline.design/H0Ko7h5o9yS34lTv/scene.splinecode"
+              onError={() => setSplineError(true)}
+              onLoad={(app: Application) => {
+                splineAppRef.current = app;
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
+              <div className="relative w-[340px] h-[340px] md:w-[480px] md:h-[480px] rounded-full overflow-hidden shadow-[0_0_100px_rgba(56,189,248,0.25)] border border-white/20 animate-[spin_120s_linear_infinite]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/moon_hd.jpg"
+                  alt="3D Lunar Surface"
+                  className="w-full h-full object-cover filter contrast-125 brightness-95"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-transparent to-cyan-500/20 mix-blend-overlay"></div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
